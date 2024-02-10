@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>CSV Data and Map</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+</head>
+<body>
+    <h5 class="text-center"><a href="{{ url_for('dashboard') }}">Back to Dashboard</a></h5>
+    <div class="container mt-4">
+        <h4 class="text-center text-primary">location details</h4>
+        <div id="data-table">
+            {{ table_html | safe }}
+        </div>
+
+        <h5 class="text-center text-primary">Location Map</h5>
+        <iframe id="location-map" width="900" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.3/socket.io.js"></script>
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+    
+        // Listen for updates and refresh the table
+        socket.on('update_table', function (data) {
+            document.getElementById('data-table').innerHTML = data.table_html;
+        });
+    
+        // Listen for location updates and update the map
+        socket.on('update_location', function (data) {
+            // Set the src attribute of the iframe based on the location
+            document.getElementById('location-map').src = data.map_url;
+        });
+    
+        // Periodically request data and location updates
+        setInterval(function () {
+            socket.emit('update_data');
+            socket.emit('update_location');  // Include this line to fetch location updates
+        }, 60000);  // Refresh every 60 seconds
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    
+</body>
+</html>
